@@ -1,42 +1,253 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+.app-container {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e; /* Dark premium background */
+  color: #e0e0e0;
+}
+
+.app-header {
+  background: #111;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.025em;
+}
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+}
+
+.toolbar button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #222;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+}
+
+.toolbar button:hover {
+  background: #333;
+  border-color: #555;
+}
+
+.toolbar button.primary {
+  background: #2563eb;
+  border-color: #2563eb;
+  font-weight: 500;
+}
+
+.toolbar button.primary:hover {
+  background: #1d4ed8;
+}
+
+.pdf-workspace {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start; /* Align top, but center horizontally */
+  padding: 40px;
+  overflow: auto;
+  background-color: #1e1e1e;
+  position: relative;
+}
+
+.pdf-wrapper {
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+  /* Remove flex centering conflict */
+  margin: auto; /* Helps with centering in overflow container */
+}
+
+/* Landing Page Styles */
+.landing-container {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at center, #2a2a2a 0%, #111 100%);
+  color: white;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.landing-content {
+  max-width: 600px;
+  width: 100%;
+  padding: 40px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 2rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.logo-circle {
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, #2563eb, #9333ea);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
 }
 
-.card {
-  padding: 2em;
+.brand h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #fff, #bbb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0;
 }
 
-.read-the-docs {
+.hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
   color: #888;
+  margin-bottom: 3rem;
+}
+
+.upload-zone {
+  border: 2px dashed #444;
+  border-radius: 16px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: all 0.3s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.upload-zone:hover, .upload-zone.dragging {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  transform: translateY(-2px);
+}
+
+.upload-icon {
+  color: #666;
+  transition: color 0.3s;
+}
+
+.upload-zone:hover .upload-icon {
+  color: #2563eb;
+}
+
+.upload-zone h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.upload-zone p {
+  margin: 0;
+  color: #888;
+}
+
+.demo-actions {
+  margin-top: 2rem;
+}
+
+.secondary-btn {
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.secondary-btn:hover {
+  color: white;
+}
+
+/* Editor Polish */
+.icon-btn {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.icon-btn:hover {
+  background: #333;
+  color: white;
+}
+
+.icon-btn.active {
+    background: rgba(37, 99, 235, 0.2);
+    color: #3bf;
+}
+
+.zoom-label {
+    min-width: 50px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-feature-settings: "tnum";
+    color: #ccc;
+}
+
+.divider {
+    width: 1px;
+    height: 24px;
+    background: #333;
+    margin: 0 4px;
+}
+
+.debug-overlay {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    pointer-events: none; 
+    z-index: 10;
+    background-image: linear-gradient(to right, rgba(255,0,0,0.1) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,0,0,0.1) 1px, transparent 1px);
+    border: 2px solid rgba(255,0,0,0.5);
+}
+
+.debug-info {
+    position: absolute; 
+    top: 5px; 
+    left: 5px; 
+    color: red; 
+    font-size: 10px; 
+    background: rgba(255,255,255,0.8); 
+    padding: 2px 4px; 
+    border-radius: 4px;
 }

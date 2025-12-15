@@ -358,7 +358,7 @@ function Editor() {
 
     try {
         // Send ALL fields to backend for burn-in
-        const response = await fetch(`${import.meta.env.SERVER_API_BASE_URL}/sign-pdf`, {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sign-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

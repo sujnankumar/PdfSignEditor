@@ -450,7 +450,7 @@ function Editor() {
                 <ArrowLeft size={20} />
             </button>
             <div className="brand-section">
-                <h1>BoloSign Editor</h1>
+                <h1>pdfSignEditor</h1>
             </div>
         </div>
         

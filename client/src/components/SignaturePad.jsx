@@ -1,30 +1,46 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { Palette, PenLine } from 'lucide-react';
 
 const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [penColor, setPenColor] = useState(attributes.penColor || '#000000');
+  const [penThickness, setPenThickness] = useState(attributes.penThickness || 'medium');
+
+  // Colors available for selection
+  const colors = [
+    { value: '#000000', label: 'Black' },
+    { value: '#0000FF', label: 'Blue' },
+    { value: '#FF0000', label: 'Red' },
+    { value: '#008000', label: 'Green' }
+  ];
+
+  // Thickness options
+  const thicknesses = [
+    { value: 'thin', label: 'Thin', size: 1.5 },
+    { value: 'medium', label: 'Medium', size: 2.5 },
+    { value: 'thick', label: 'Thick', size: 4 }
+  ];
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     
-    // Set canvas size to match display size
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    // Set canvas size to match display size if not already set or simplified resize handling
+    if (canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
     
     const ctx = canvas.getContext('2d');
     
-    // Apply pen attributes from Insert menu
-    const penThicknessMap = {
-      thin: 1.5,
-      medium: 2.5,
-      thick: 4
-    };
+    const thicknessValue = thicknesses.find(t => t.value === penThickness)?.size || 2.5;
     
-    ctx.lineWidth = penThicknessMap[attributes.penThickness] || 2.5;
+    ctx.lineWidth = thicknessValue;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = attributes.penColor || '#000000';
-  }, [attributes.penColor, attributes.penThickness]);
+    ctx.lineJoin = 'round'; // smoother turns
+    ctx.strokeStyle = penColor;
+  }, [penColor, penThickness]);
 
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
@@ -43,6 +59,7 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
   };
 
   const stopDrawing = () => {
+    if (!isDrawing) return;
     const ctx = canvasRef.current.getContext('2d');
     ctx.closePath();
     setIsDrawing(false);
@@ -91,6 +108,7 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.beginPath(); // Reset path
   };
 
   const save = () => {
@@ -120,33 +138,90 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
         touchAction: 'none'
     }}>
       <div className="signature-pad-container" style={{
-          background: 'linear-gradient(to bottom, #1a1a1a, #111)',
+          background: 'linear-gradient(to bottom, #1a1a1a, #0f0f0f)',
           padding: '0',
           borderRadius: '16px',
           width: '600px', 
           maxWidth: '95%',
           border: '1px solid #333',
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.7)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column'
       }}>
-        {/* Header */}
+        {/* Header with Tools */}
         <div style={{
-          padding: '20px 24px',
+          padding: '16px 24px',
           borderBottom: '1px solid #2a2a2a',
-          background: 'linear-gradient(to bottom, rgba(30, 30, 30, 0.5), transparent)'
+          background: '#1a1a1a',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px'
         }}>
-          <h3 style={{
-            margin: 0,
-            fontSize: '1.1rem',
-            fontWeight: 600,
-            color: '#f0f0f0',
-            letterSpacing: '-0.01em'
-          }}>Draw Your Signature</h3>
-          <p style={{
-            margin: '4px 0 0 0',
-            fontSize: '0.85rem',
-            color: '#888'
-          }}>Sign in the box below</p>
+          <div>
+             <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600, color: '#f0f0f0' }}>Sign Document</h3>
+             <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#888' }}>Draw your signature below</p>
+          </div>
+
+          {/* Tools Container */}
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            
+            {/* Color Picker */}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {colors.map((color) => (
+                    <button
+                        key={color.value}
+                        onClick={() => setPenColor(color.value)}
+                        title={color.label}
+                        style={{
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '50%',
+                            backgroundColor: color.value,
+                            border: penColor === color.value ? '2px solid #fff' : '2px solid transparent',
+                            boxShadow: penColor === color.value ? '0 0 0 2px rgba(255,255,255,0.2)' : 'none',
+                            cursor: 'pointer',
+                            outline: 'none',
+                            transition: 'transform 0.1s',
+                            transform: penColor === color.value ? 'scale(1.1)' : 'scale(1)'
+                        }}
+                    />
+                ))}
+            </div>
+
+            <div style={{ width: '1px', height: '24px', background: '#333' }}></div>
+
+            {/* Thickness Picker */}
+            <div style={{ display: 'flex', gap: '4px', background: '#252525', padding: '2px', borderRadius: '6px' }}>
+                {thicknesses.map((t) => (
+                    <button
+                        key={t.value}
+                        onClick={() => setPenThickness(t.value)}
+                        title={t.label}
+                        style={{
+                            padding: '4px 8px',
+                            background: penThickness === t.value ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <div style={{
+                            width: '16px',
+                            height: `${t.size}px`,
+                            backgroundColor: penThickness === t.value ? '#fff' : '#666',
+                            borderRadius: '1px'
+                        }} />
+                    </button>
+                ))}
+            </div>
+
+          </div>
         </div>
 
         {/* Canvas Area */}
@@ -154,23 +229,24 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
           padding: '24px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '16px'
+          gap: '16px',
+          flex: 1
         }}>
           <div style={{
-            border: '2px dashed rgba(59, 130, 246, 0.3)', 
+            border: '2px dashed #cbd5e1', // Slate-300
             borderRadius: '12px',
             width: '100%',
             aspectRatio: '2.5 / 1',
-            background: 'rgba(255, 255, 255, 0.03)',
+            background: '#ffffff',
             position: 'relative',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            cursor: 'crosshair'
           }}>
             <canvas
               ref={canvasRef}
               style={{
                 width: '100%', 
                 height: '100%', 
-                cursor: 'crosshair',
                 display: 'block',
                 touchAction: 'none'
               }}
@@ -184,19 +260,19 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
             />
           </div>
 
-          {/* Action Buttons */}
+          {/* Footer Actions */}
           <div style={{
             display: 'flex', 
+            justifyContent: 'space-between',
+            alignItems: 'center',
             flexWrap: 'wrap',
-            justifyContent: 'space-between', 
-            gap: '12px',
-            paddingTop: '8px'
+            gap: '12px'
           }}>
             <button 
               onClick={clear}
               style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: '#e0e0e0',
+                background: 'transparent',
+                color: '#aaa',
                 border: '1px solid #333',
                 padding: '10px 20px',
                 borderRadius: '8px',
@@ -204,77 +280,65 @@ const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
                 fontSize: '0.9rem',
                 fontWeight: 500,
                 transition: 'all 0.2s',
-                flex: '1 1 auto',
-                minWidth: '80px'
+                flex: '0 1 auto' // Allow shrinking but prefer natural width
               }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-                e.target.style.borderColor = '#444';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.target.style.borderColor = '#333';
-              }}
+              onMouseEnter={(e) => { e.target.style.color = '#fff'; e.target.style.borderColor = '#555'; }}
+              onMouseLeave={(e) => { e.target.style.color = '#aaa'; e.target.style.borderColor = '#333'; }}
             >
               Clear
             </button>
-            <button 
-              onClick={onCancel}
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                color: '#e0e0e0',
-                border: '1px solid #333',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: 500,
-                transition: 'all 0.2s',
-                flex: '1 1 auto',
-                minWidth: '80px'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.08)';
-                e.target.style.borderColor = '#444';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.target.style.borderColor = '#333';
-              }}
-            >
-              Cancel
-            </button>
-            <button 
-              onClick={save} 
-              style={{
-                background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.15))',
-                color: '#f0f0f0',
-                border: '1px solid rgba(59, 130, 246, 0.4)',
-                padding: '10px 24px',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontSize: '0.9rem',
-                fontWeight: 600,
-                transition: 'all 0.2s',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.2)',
-                flex: '1 1 auto',
-                minWidth: '140px'
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(59, 130, 246, 0.25))';
-                e.target.style.borderColor = 'rgba(59, 130, 246, 0.6)';
-                e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.35)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = 'linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(59, 130, 246, 0.15))';
-                e.target.style.borderColor = 'rgba(59, 130, 246, 0.4)';
-                e.target.style.transform = 'translateY(0)';
-                e.target.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.2)';
-              }}
-            >
-              Save Signature
-            </button>
+            
+            <div style={{ 
+                display: 'flex', 
+                gap: '12px', 
+                flexWrap: 'wrap',
+                justifyContent: 'flex-end',
+                flex: '1 1 auto'
+            }}>
+                <button 
+                onClick={onCancel}
+                style={{
+                    background: 'transparent',
+                    color: '#e0e0e0',
+                    border: '1px solid transparent',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 500
+                }}
+                onMouseEnter={(e) => e.target.style.background = 'rgba(255,255,255,0.05)'}
+                onMouseLeave={(e) => e.target.style.background = 'transparent'}
+                >
+                Cancel
+                </button>
+                <button 
+                onClick={save} 
+                style={{
+                    background: '#2563eb', // Standard primary blue
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '10px 24px',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontSize: '0.9rem',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 6px rgba(37, 99, 235, 0.2)',
+                    transition: 'all 0.2s',
+                    whiteSpace: 'nowrap' // Prevent text wrapping inside button
+                }}
+                onMouseEnter={(e) => {
+                    e.target.style.background = '#1d4ed8';
+                    e.target.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                    e.target.style.background = '#2563eb';
+                    e.target.style.transform = 'translateY(0)';
+                }}
+                >
+                Use Signature
+                </button>
+            </div>
           </div>
         </div>
       </div>

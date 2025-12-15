@@ -6,7 +6,7 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, con
     const [activeField, setActiveField] = useState(null);
     const [fieldAttributes, setFieldAttributes] = useState({
         text: {
-            fontFamily: 'Inter',
+            fontFamily: 'Helvetica',
             fontSize: 14,
             color: '#000000',
             bold: false,
@@ -115,12 +115,9 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, con
                                 value={fieldAttributes.text.fontFamily}
                                 onChange={(e) => updateAttribute('text', 'fontFamily', e.target.value)}
                             >
-                                <option value="Inter">Inter</option>
-                                <option value="Roboto">Roboto</option>
-                                <option value="Arial">Arial</option>
-                                <option value="Times New Roman">Times New Roman</option>
-                                <option value="Georgia">Georgia</option>
-                                <option value="Courier New">Courier New</option>
+                                <option value="Helvetica">Helvetica</option>
+                                <option value="Times-Roman">Times-Roman</option>
+                                <option value="Courier">Courier</option>
                             </select>
                         </div>
                         <div className="attribute-row">

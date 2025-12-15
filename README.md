@@ -1,4 +1,4 @@
-# BoloSign Prototype
+# pdfSignEditor Prototype
 
 This is a **Role-Based Prototype** for a legal e-signature system.
 
@@ -6,7 +6,7 @@ This is a **Role-Based Prototype** for a legal e-signature system.
 
 ### Prerequisites
 - Node.js installed.
-- MongoDB (optional, defaults to `mongodb://localhost:27017/bolosign`).
+- MongoDB (optional, defaults to `mongodb://localhost:27017/pdfSignEditor`).
 
 ### 1. Backend (Terminal 1)
 ```bash

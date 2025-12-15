@@ -37,21 +37,21 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
 
     // Helper function to get font based on attributes
     const getFont = (attributes = {}) => {
-        const fontFamily = attributes.fontFamily || 'Inter';
+        const fontFamily = attributes.fontFamily || 'Helvetica';
         const bold = attributes.bold;
         const italic = attributes.italic;
 
         // Map font families to available PDF fonts
         if (fontFamily === 'Courier') {
             return bold ? courierBoldFont : courierFont;
-        } else if (fontFamily === 'Roboto' || fontFamily === 'Arial') {
-            // Use Times Roman as fallback for Roboto/Arial
+        } else if (fontFamily === 'Times-Roman') {
+            // Times Roman for Times New Roman and Georgia (both serif)
             if (bold && italic) return timesRomanBoldItalicFont;
             if (bold) return timesRomanBoldFont;
             if (italic) return timesRomanItalicFont;
             return timesRomanFont;
         } else {
-            // Default: Inter/Helvetica
+            // Helvetica (default)
             if (bold && italic) return helveticaBoldObliqueFont;
             if (bold) return helveticaBoldFont;
             if (italic) return helveticaObliqueFont;
@@ -186,6 +186,18 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                         maxWidth: boxW - (padding * 2),
                         lineHeight: fontSize * 1.2
                     });
+
+                    // Draw underline if needed
+                    if (attributes.underline) {
+                        const textWidth = font.widthOfTextAtSize(field.value, fontSize);
+                        const underlineY = textY - 2;
+                        targetPage.drawLine({
+                            start: { x: textX, y: underlineY },
+                            end: { x: textX + Math.min(textWidth, boxW - (padding * 2)), y: underlineY },
+                            thickness: Math.max(1, fontSize / 12),
+                            color: color
+                        });
+                    }
                 }
                 break;
 

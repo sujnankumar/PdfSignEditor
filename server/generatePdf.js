@@ -10,7 +10,7 @@ async function createPdf() {
     const { width, height } = page.getSize();
     const fontSize = 30;
 
-    page.drawText('BoloSign Non-Disclosure Agreement', {
+    page.drawText('pdfSignEditor Non-Disclosure Agreement', {
         x: 50,
         y: height - 4 * fontSize,
         size: fontSize,

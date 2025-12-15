@@ -10,11 +10,10 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-const crypto = require('crypto');
 const AuditLog = require('./models/AuditLog');
 
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bolosign')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/pdfSignEditor')
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('MongoDB connection error:', err));
 

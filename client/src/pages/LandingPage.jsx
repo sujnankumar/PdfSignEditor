@@ -49,7 +49,7 @@ const LandingPage = () => {
       <div className="landing-content">
         <div className="brand">
            <div className="logo-circle"><FileText size={24} color="white"/></div>
-           <h1>BoloSign</h1>
+           <h1>pdfSignEditor</h1>
         </div>
         
         <h2 className="hero-title">Sign Documents with Confidence</h2>

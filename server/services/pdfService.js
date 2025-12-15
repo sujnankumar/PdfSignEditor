@@ -74,27 +74,22 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
         return rgb(r, g, b);
     };
 
-    // Process each field
     for (const field of fields) {
         const pages = pdfDoc.getPages();
         const targetPage = pages[field.pageNumber - 1] || pages[0];
         const { width: pageWidth, height: pageHeight } = targetPage.getSize();
 
-        // Calculate position and size in points
         const boxW = field.rect.w * pageWidth;
         const boxH = field.rect.h * pageHeight;
         const x = field.rect.x * pageWidth;
-        // Y-axis flip: PDF is bottom-left origin, CSS is top-left
         const y = pageHeight - (field.rect.y * pageHeight) - boxH;
 
         switch (field.type) {
             case 'signature':
-                // Signature image handling
                 if (field.value) {
                     const signatureImageBytes = Buffer.from(field.value.split(',')[1], 'base64');
                     const signatureImage = await pdfDoc.embedPng(signatureImageBytes);
 
-                    // Aspect ratio preservation
                     const imgDims = signatureImage.scale(1);
                     const imgAspect = imgDims.width / imgDims.height;
                     const boxAspect = boxW / boxH;
@@ -108,7 +103,6 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                         drawW = boxH * imgAspect;
                     }
 
-                    // Center signature in box (like editor does)
                     const drawX = x + (boxW - drawW) / 2;
                     const drawY = y + (boxH - drawH) / 2;
 
@@ -122,12 +116,9 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                 break;
 
             case 'image':
-                // Image field handling (same as signature but for uploaded images)
                 if (field.value) {
                     const imageBytes = Buffer.from(field.value.split(',')[1], 'base64');
                     let embeddedImage;
-
-                    // Detect image type from data URL
                     if (field.value.startsWith('data:image/png')) {
                         embeddedImage = await pdfDoc.embedPng(imageBytes);
                     } else if (field.value.startsWith('data:image/jpeg') || field.value.startsWith('data:image/jpg')) {
@@ -150,7 +141,6 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                         drawW = boxH * imgAspect;
                     }
 
-                    // Center image in box
                     const drawX = x + (boxW - drawW) / 2;
                     const drawY = y + (boxH - drawH) / 2;
 

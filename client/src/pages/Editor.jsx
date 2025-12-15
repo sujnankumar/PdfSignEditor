@@ -60,6 +60,8 @@ function Editor() {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showInsertMenu, setShowInsertMenu] = useState(false);
   const [contextMenuPos, setContextMenuPos] = useState(null);
+  const [touchStartTime, setTouchStartTime] = useState(0);
+  const [isLongPressing, setIsLongPressing] = useState(false);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     console.log(`Document loaded with ${numPages} pages`);
@@ -77,14 +79,29 @@ function Editor() {
   };
 
   const handleZoomControlTouchStart = (e) => {
-    if (e.target.closest('.zoom-btn')) return;
-    setIsDragging(true);
-    const rect = e.currentTarget.getBoundingClientRect();
     const touch = e.touches[0];
-    setDragOffset({
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    });
+    setTouchStartTime(Date.now());
+    setIsLongPressing(false);
+    
+    // Set up long-press timer
+    const longPressTimer = setTimeout(() => {
+      // Long press detected - start drag mode
+      setIsLongPressing(true);
+      setIsDragging(true);
+      const rect = e.currentTarget.getBoundingClientRect();
+      setDragOffset({
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      });
+      
+      // Prevent scrolling
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    }, 500); // 500ms long press threshold
+    
+    // Store timer ID to clear it if touch ends early
+    e.currentTarget.longPressTimer = longPressTimer;
   };
 
   const handleZoomControlMouseMove = (e) => {
@@ -106,7 +123,12 @@ function Editor() {
   };
 
   const handleZoomControlTouchMove = (e) => {
-    if (!isDragging) return;
+    if (!isDragging || !isLongPressing) return;
+    
+    // Prevent background scrolling
+    if (e.cancelable) {
+      e.preventDefault();
+    }
     
     const touch = e.touches[0];
     let newX = touch.clientX - dragOffset.x;
@@ -128,8 +150,25 @@ function Editor() {
     setIsDragging(false);
   };
 
-  const handleZoomControlTouchEnd = () => {
+  const handleZoomControlTouchEnd = (e) => {
+    // Clear long press timer if it exists
+    if (e.currentTarget.longPressTimer) {
+      clearTimeout(e.currentTarget.longPressTimer);
+    }
+    
+    const touchDuration = Date.now() - touchStartTime;
+    
+    // If it was a quick tap (not a long press), allow button clicks
+    if (touchDuration < 500 && !isLongPressing) {
+      // Normal tap - button click will handle it
+      setIsDragging(false);
+      setIsLongPressing(false);
+      return;
+    }
+    
+    // End drag mode
     setIsDragging(false);
+    setIsLongPressing(false);
   };
 
   // Handle window resize to keep control in bounds
@@ -230,6 +269,7 @@ function Editor() {
   };
   
   const handleZoomIn = () => {
+    if (isLongPressing) return; // Ignore clicks during drag
     if (scaleMode === 'auto') {
       setScaleMode('manual');
       setScaleValue(Math.min(effectiveScale + 0.1, 3));
@@ -239,6 +279,7 @@ function Editor() {
   };
 
   const handleZoomOut = () => {
+    if (isLongPressing) return; // Ignore clicks during drag
     if (scaleMode === 'auto') {
       setScaleMode('manual');
       setScaleValue(Math.max(effectiveScale - 0.1, 0.5));

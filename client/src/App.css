@@ -8,70 +8,182 @@
 }
 
 .app-header {
-  background: #111;
-  padding: 1rem 2rem;
-  border-bottom: 1px solid #333;
+  background: linear-gradient(to bottom, #0f0f0f, #111);
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid #2a2a2a;
   display: flex;
   justify-content: space-between;
   align-items: center;
   z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.app-header h1 {
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand-section h1 {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 600;
   color: #fff;
   letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #fff, #aaa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .toolbar {
   display: flex;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
 }
 
 .toolbar button {
-  padding: 8px 16px;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #222;
-  color: #fff;
+  padding: 7px 14px;
+  border-radius: 7px;
+  border: 1px solid #2a2a2a;
+  background: rgba(255, 255, 255, 0.05);
+  color: #e0e0e0;
   cursor: pointer;
   font-size: 0.875rem;
-  transition: all 0.2s;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.toolbar button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.toolbar button:hover::before {
+  opacity: 1;
 }
 
 .toolbar button:hover {
-  background: #333;
-  border-color: #555;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.toolbar button.primary {
-  background: #2563eb;
-  border-color: #2563eb;
+.insert-button-wrapper {
+  position: relative;
+}
+
+.insert-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid #333 !important;
+  color: #e0e0e0 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  padding: 8px 18px !important;
+  border-radius: 8px !important;
+  letter-spacing: 0.01em;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  margin: 0 !important;
+}
+
+.insert-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: #444 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.insert-btn:active {
+  transform: translateY(0) !important;
+  box-shadow: none !important;
+}
+
+.save-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid #333 !important;
+  color: #e0e0e0 !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  padding: 8px 18px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.save-btn:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: #444 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.page-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 7px;
+  border: 1px solid #2a2a2a;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.page-selector span {
+  color: #aaa;
+  font-size: 0.85rem;
   font-weight: 500;
 }
 
-.toolbar button.primary:hover {
-  background: #1d4ed8;
+.page-selector select {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  border: 1px solid #333;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
 }
+
+.page-selector select:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #444;
+}
+
+.page-selector select:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+
 
 .pdf-workspace {
   flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* Align top, but center horizontally */
+  display: block;
   padding: 40px;
   overflow: auto;
+  text-align: center;
   background-color: #1e1e1e;
-  position: relative;
+  position: relative;  
 }
 
 .pdf-wrapper {
   position: relative;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-  /* Remove flex centering conflict */
-  margin: auto; /* Helps with centering in overflow container */
+  margin: 0;
+  width: fit-content;
+  min-width: fit-content;
+  display: inline-block;
 }
 
 /* Landing Page Styles */
@@ -114,6 +226,7 @@
   font-size: 2rem;
   font-weight: 700;
   background: linear-gradient(to right, #fff, #bbb);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin: 0;
@@ -226,9 +339,10 @@
 
 .divider {
     width: 1px;
-    height: 24px;
-    background: #333;
+    height: 20px;
+    background: linear-gradient(to bottom, transparent, #333, transparent);
     margin: 0 4px;
+    vertical-align: middle;
 }
 
 .debug-overlay {
@@ -250,4 +364,288 @@
     background: rgba(255,255,255,0.8); 
     padding: 2px 4px; 
     border-radius: 4px;
+}
+
+/* Mobile Responsive Styles */
+.mobile-header-actions {
+    display: none;
+}
+
+.mobile-insert-fab {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s;
+}
+
+.mobile-insert-fab:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Mobile Bottom Toolbar */
+.mobile-bottom-toolbar {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, #0a0a0a, #111);
+    border-top: 1px solid #2a2a2a;
+    padding: 0.75rem 1rem;
+    z-index: 100;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.4);
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mobile-toolbar-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+
+.mobile-page-nav {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid #2a2a2a;
+}
+
+.page-nav-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: white;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: all 0.2s;
+}
+
+.page-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.page-nav-btn:not(:disabled):active {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+}
+
+.page-indicator {
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 60px;
+    text-align: center;
+}
+
+.mobile-export-btn {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.mobile-export-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+
+
+
+
+/* Floating Zoom Controls */
+.floating-zoom-controls {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(17, 17, 17, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid #444;
+    border-radius: 50px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    cursor: grab;
+    user-select: none;
+    width: fit-content;
+    min-width: auto;
+    max-width: none;
+    height: fit-content;
+    min-height: auto;
+    max-height: none;
+    white-space: nowrap;
+    resize: none;
+    flex-shrink: 0;
+}
+
+.floating-zoom-controls.collapsed {
+    padding: 0.5rem;
+}
+
+.floating-zoom-controls.dragging {
+    cursor: grabbing !important;
+    user-select: none;
+    transition: none !important;
+}
+
+.floating-zoom-controls.dragging * {
+    pointer-events: none;
+}
+
+.zoom-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    pointer-events: auto;
+}
+
+.zoom-btn:active {
+    background: rgba(37, 99, 235, 0.3);
+    transform: scale(0.9);
+}
+
+.zoom-btn.fit {
+    color: #3b82f6;
+}
+
+.zoom-btn.toggle {
+    color: #888;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-left: 0.25rem;
+}
+
+.zoom-btn.toggle:hover {
+    color: white;
+}
+
+.zoom-display {
+    color: white;
+    font-size: 0.9rem;
+    min-width: 50px;
+    text-align: center;
+    font-weight: 600;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 768px) {
+    .desktop-toolbar {
+        display: none !important;
+    }
+
+    .mobile-header-actions {
+        display: flex;
+    }
+
+    .mobile-bottom-toolbar {
+        display: flex;
+    }
+
+    .app-header {
+        padding: 0.75rem 1rem;
+    }
+
+    .header-left h1 {
+        font-size: 0.95rem;
+    }
+
+    .pdf-workspace {
+        padding: 1rem;
+        padding-bottom: 5.5rem; /* Space for mobile bottom toolbar */
+    }
+
+    .landing-content {
+        padding: 1.5rem;
+    }
+
+    .hero-title {
+        font-size: 1.75rem;
+    }
+
+    .upload-zone {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .header-left h1 {
+        font-size: 0.85rem;
+    }
+
+    .icon-btn {
+        padding: 6px;
+    }
+
+    .mobile-insert-fab {
+        width: 44px;
+        height: 44px;
+    }
+
+    .mobile-bottom-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.75rem;
+    }
+
+    .mobile-toolbar-section {
+        width: 100%;
+    }
+
+    .mobile-page-nav {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mobile-export-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
 }

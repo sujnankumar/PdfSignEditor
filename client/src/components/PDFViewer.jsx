@@ -9,29 +9,40 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-const PDFViewer = ({ file, pageNumber = 1, onDocumentLoadSuccess, onPageLoadSuccess, onDimensionsChange, scaleMode, scaleValue, ...props }) => {
+const PDFViewer = ({
+  file,
+  pageNumber = 1,
+  workspaceRef,
+  onDocumentLoadSuccess,
+  onPageLoadSuccess,
+  onDimensionsChange,
+  scaleMode,
+  scaleValue,
+}) => {
   const [containerWidth, setContainerWidth] = useState(null);
-  const containerRef = useRef(null);
-
+  
   useEffect(() => {
-    const resizeObserver = new ResizeObserver((entries) => {
-      if (entries[0]) {
-        const { width } = entries[0].contentRect;
-        setContainerWidth(width);
-      }
-    });
+  if (!workspaceRef?.current) return;
 
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
+  const resizeObserver = new ResizeObserver(entries => {
+    const { width } = entries[0].contentRect;
 
-    return () => resizeObserver.disconnect();
-  }, []);
+    // subtract left + right padding of pdf-workspace (40px + 40px)
+    setContainerWidth(width - 80);
+  });
+
+  resizeObserver.observe(workspaceRef.current);
+  return () => resizeObserver.disconnect();
+}, [workspaceRef]);
+
+  // Force re-render when scale mode changes
+  const [renderKey, setRenderKey] = React.useState(0);
+  React.useEffect(() => {
+    setRenderKey(prev => prev + 1);
+  }, [scaleMode, scaleValue]);
 
   const onPageLoad = (page) => {
       onPageLoadSuccess && onPageLoadSuccess(page);
-      
-      console.log('Page Load. ScaleMode:', scaleMode, 'Value:', scaleValue);
       
       let renderedWidth, renderedHeight;
       const originalViewport = page.getViewport({ scale: 1 });
@@ -40,17 +51,21 @@ const PDFViewer = ({ file, pageNumber = 1, onDocumentLoadSuccess, onPageLoadSucc
           renderedWidth = originalViewport.width * scaleValue;
           renderedHeight = originalViewport.height * scaleValue;
       } else {
+          // Auto mode: fit to container width
           if (containerWidth) {
-             const scale = containerWidth / originalViewport.width;
              renderedWidth = containerWidth;
-             renderedHeight = originalViewport.height * scale;
+             renderedHeight = originalViewport.height * (containerWidth / originalViewport.width);
           } else {
              return;
           }
       }
       
       if (onDimensionsChange) {
-          onDimensionsChange(renderedWidth, renderedHeight);
+          onDimensionsChange(
+            renderedWidth,
+            renderedHeight,
+            originalViewport.width
+          );
       }
   };
 
@@ -58,11 +73,12 @@ const PDFViewer = ({ file, pageNumber = 1, onDocumentLoadSuccess, onPageLoadSucc
   if (scaleMode === 'manual') {
       pageProps.scale = scaleValue;
   } else {
-      pageProps.width = containerWidth ? Math.min(containerWidth, 800) : undefined;
+      // Auto mode: full container width
+      pageProps.width = containerWidth || undefined;
   }
 
   return (
-    <div ref={containerRef} className="pdf-container" style={{ width: '100%', maxWidth: '100%', display: 'flex', justifyContent: 'center' }}>
+    <div className="pdf-container" style={{ width: 'fit-content', maxWidth: 'none',display: 'inline-block' }}>
         <Document
           file={file}
           onLoadSuccess={onDocumentLoadSuccess}
@@ -70,6 +86,7 @@ const PDFViewer = ({ file, pageNumber = 1, onDocumentLoadSuccess, onPageLoadSucc
           error={<div style={{padding: '20px', color: '#ff6b6b'}}>Failed to load PDF</div>}
         >
           <Page 
+            key={renderKey}
             pageNumber={pageNumber}
             {...pageProps}
             onLoadSuccess={onPageLoad}

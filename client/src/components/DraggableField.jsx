@@ -57,6 +57,13 @@ const DraggableField = ({
     }
   };
 
+  // Mobile-friendly: also allow single tap when selected
+  const handleClick = () => {
+    if (selected && (type === 'text' || type === 'date')) {
+      setTimeout(() => setIsEditing(true), 100);
+    }
+  };
+
   const handleTextBlur = () => {
     setIsEditing(false);
     if (onValueChange) {
@@ -215,6 +222,7 @@ const DraggableField = ({
       onClick={(e) => {
           e.stopPropagation();
           onSelect(id);
+          handleClick();
       }}
       onDoubleClick={handleDoubleClick}
       style={{
@@ -231,7 +239,12 @@ const DraggableField = ({
       {renderContent()}
       {selected && (
           <button 
-            onClick={(e) => { e.stopPropagation(); onRemove(id); }}
+            onClick={(e) => { 
+                e.stopPropagation();
+                e.preventDefault();
+                onRemove(id); 
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
             style={{
                 position: 'absolute',
                 top: -10,
@@ -248,7 +261,9 @@ const DraggableField = ({
                 justifyContent: 'center',
                 fontSize: '16px',
                 fontWeight: 'bold',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                pointerEvents: 'auto',
+                zIndex: 100
             }}
           >
               ×

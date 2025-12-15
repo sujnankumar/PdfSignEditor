@@ -339,7 +339,31 @@ function Editor() {
   // Handle right-click to show insert menu
   const handleContextMenu = (e) => {
     e.preventDefault();
-    setContextMenuPos({ x: e.clientX, y: e.clientY });
+    
+    // Approximate menu dimensions
+    const menuWidth = 380;
+    const menuHeight = 500;
+    const padding = 10;
+    
+    // Calculate position ensuring menu stays within viewport
+    let x = e.clientX;
+    let y = e.clientY;
+    
+    // Check right boundary
+    if (x + menuWidth > window.innerWidth - padding) {
+      x = window.innerWidth - menuWidth - padding;
+    }
+    
+    // Check bottom boundary
+    if (y + menuHeight > window.innerHeight - padding) {
+      y = window.innerHeight - menuHeight - padding;
+    }
+    
+    // Ensure menu doesn't go off left or top
+    x = Math.max(padding, x);
+    y = Math.max(padding, y);
+    
+    setContextMenuPos({ x, y });
     setShowInsertMenu(true);
   };
 

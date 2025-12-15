@@ -295,35 +295,42 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, con
                         </button>
                     </div>
                     <div className="insert-menu-content">
-                        {fields.map(field => (
-                            <div key={field.type} className="field-item-wrapper">
-                                <div 
-                                    className={`field-item ${activeField === field.type ? 'active' : ''}`}
-                                    onClick={() => handleFieldClick(field.type)}
-                                >
-                                    <div className="field-icon">{field.icon}</div>
-                                    <div className="field-info">
-                                        <div className="field-label">{field.label}</div>
-                                        <div className="field-description">{field.description}</div>
+                        {fields.map(field => {
+                            const isThisActive = activeField === field.type;
+                            const shouldHide = activeField && !isThisActive;
+                            
+                            if (shouldHide) return null;
+                            
+                            return (
+                                <div key={field.type} className="field-item-wrapper">
+                                    <div 
+                                        className={`field-item ${isThisActive ? 'active' : ''}`}
+                                        onClick={() => handleFieldClick(field.type)}
+                                    >
+                                        <div className="field-icon">{field.icon}</div>
+                                        <div className="field-info">
+                                            <div className="field-label">{field.label}</div>
+                                            <div className="field-description">{field.description}</div>
+                                        </div>
+                                        <ChevronRight 
+                                            size={18} 
+                                            className={`chevron ${isThisActive ? 'rotated' : ''}`}
+                                        />
                                     </div>
-                                    <ChevronRight 
-                                        size={18} 
-                                        className={`chevron ${activeField === field.type ? 'rotated' : ''}`}
-                                    />
+                                    {activeField === field.type && (
+                                        <div className="field-attributes">
+                                            {renderAttributeEditor(field.type)}
+                                            <button 
+                                                className="insert-btn"
+                                                onClick={() => handleInsert(field.type)}
+                                            >
+                                                Insert {field.label}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
-                                {activeField === field.type && (
-                                    <div className="field-attributes">
-                                        {renderAttributeEditor(field.type)}
-                                        <button 
-                                            className="insert-btn"
-                                            onClick={() => handleInsert(field.type)}
-                                        >
-                                            Insert {field.label}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </div>
@@ -345,20 +352,26 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, con
                 <h3>Insert Field</h3>
             </div>
             <div className="insert-menu-content">
-                {fields.map(field => (
-                    <div key={field.type} className="field-item-wrapper">
-                        <div 
-                            className={`field-item ${activeField === field.type ? 'active' : ''}`}
-                            onClick={() => handleFieldClick(field.type)}
-                        >
-                            <div className="field-icon">{field.icon}</div>
-                            <div className="field-info">
-                                <div className="field-label">{field.label}</div>
-                                <div className="field-description">{field.description}</div>
-                            </div>
-                            <ChevronRight 
-                                size={16} 
-                                className={`chevron ${activeField === field.type ? 'rotated' : ''}`}
+                {fields.map(field => {
+                    const isThisActive = activeField === field.type;
+                    const shouldHide = activeField && !isThisActive;
+                    
+                    if (shouldHide) return null;
+                    
+                    return (
+                        <div key={field.type} className="field-item-wrapper">
+                            <div 
+                                className={`field-item ${isThisActive ? 'active' : ''}`}
+                                onClick={() => handleFieldClick(field.type)}
+                            >
+                                <div className="field-icon">{field.icon}</div>
+                                <div className="field-info">
+                                    <div className="field-label">{field.label}</div>
+                                    <div className="field-description">{field.description}</div>
+                                </div>
+                                <ChevronRight 
+                                    size={16} 
+                                    className={`chevron ${isThisActive ? 'rotated' : ''}`}
                             />
                         </div>
                         {activeField === field.type && (
@@ -373,7 +386,8 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, con
                             </div>
                         )}
                     </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

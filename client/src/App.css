@@ -612,6 +612,11 @@
     .upload-zone {
         padding: 2rem 1.5rem;
     }
+
+    /* Position zoom controls above mobile bottom toolbar */
+    .floating-zoom-controls {
+        bottom: 6rem !important; /* Above the 5.5rem bottom toolbar */
+    }
 }
 
 @media (max-width: 480px) {

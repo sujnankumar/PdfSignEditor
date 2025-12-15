@@ -513,6 +513,8 @@
     white-space: nowrap;
     resize: none;
     flex-shrink: 0;
+    touch-action: none; /* Prevent default touch behaviors */
+    will-change: transform, left, top; /* Hardware acceleration hint */
 }
 
 .floating-zoom-controls.collapsed {

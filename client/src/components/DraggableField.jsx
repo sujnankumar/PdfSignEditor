@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Rnd } from 'react-rnd';
 
 const DraggableField = ({ 
@@ -7,6 +7,8 @@ const DraggableField = ({
   initialPos,
   pdfDimensions,
   value,
+  scale = 1,
+  attributes = {},
   onUpdate,
   onRemove,
   onValueChange,
@@ -16,6 +18,33 @@ const DraggableField = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || '');
   const [lastTapTime, setLastTapTime] = useState(0);
+  const textareaRef = useRef(null);
+  const displayRef = useRef(null);
+
+  // Auto-adjust height for text fields - only when content changes
+  useEffect(() => {
+    if (type !== 'text' || !pdfDimensions) return;
+    
+    const measureHeight = () => {
+      const element = isEditing ? textareaRef.current : displayRef.current;
+      if (!element) return;
+      
+      const scrollHeight = element.scrollHeight;
+      const minHeight = 30 * scale; // Proportional minimum height
+      const newHeight = Math.max(minHeight, scrollHeight + (4 * scale)); // Proportional padding
+      
+      const normalizedHeight = newHeight / pdfDimensions.height;
+      
+      if (Math.abs(normalizedHeight - initialPos.h) > 0.005) {
+        onUpdate(id, {
+          ...initialPos,
+          h: normalizedHeight
+        });
+      }
+    };
+    
+    measureHeight();
+  }, [editValue, value, isEditing]);
 
   if (!pdfDimensions) return null;
 
@@ -109,41 +138,68 @@ const DraggableField = ({
     } else if (type === 'text') {
       if (isEditing) {
         return (
-          <input
-            type="text"
+          <textarea 
+            ref={textareaRef}
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleTextBlur}
+            autoFocus
             onTouchStart={(e) => e.stopPropagation()}
             onTouchMove={(e) => e.stopPropagation()}
             onTouchEnd={(e) => e.stopPropagation()}
-            autoFocus
             style={{
               width: '100%',
               height: '100%',
+              margin: 0,
+              padding: 0,
               border: 'none',
               background: 'transparent',
-              textAlign: 'center',
-              fontSize: '12px',
+              fontFamily: attributes.fontFamily || 'Inter',
+              fontSize: `${(attributes.fontSize || 14) * scale}px`,
+              lineHeight: 1.2,
+              color: attributes.color || '#000',
+              fontWeight: attributes.bold ? 'bold' : 'normal',
+              fontStyle: attributes.italic ? 'italic' : 'normal',
+              textDecoration: attributes.underline ? 'underline' : 'none',
               outline: 'none',
-              pointerEvents: 'auto'
+              pointerEvents: 'auto',
+              resize: 'none',
+              overflow: 'hidden',
+              wordWrap: 'break-word',
+              boxSizing: 'border-box',
+              verticalAlign: 'top',
+              WebkitFontSmoothing: 'antialiased'
             }}
           />
         );
       } else {
         return (
-          <>
-            <div style={{
-              pointerEvents: 'none', 
-              fontSize: '12px', 
-              fontWeight: 500,
+          <div 
+            ref={displayRef}
+            style={{
+              width: '100%',
+              height: '100%',
+              margin: 0,
+              padding: 0,
+              border: 'none',
+              pointerEvents: 'none',
+              fontFamily: attributes.fontFamily || 'Inter',
+              fontSize: `${(attributes.fontSize || 14) * scale}px`,
+              lineHeight: 1.2,
+              color: attributes.color || '#000',
+              fontWeight: attributes.bold ? 'bold' : 'normal',
+              fontStyle: attributes.italic ? 'italic' : 'normal',
+              textDecoration: attributes.underline ? 'underline' : 'none',
               overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
+              wordWrap: 'break-word',
+              whiteSpace: 'pre-wrap',
+              boxSizing: 'border-box',
+              verticalAlign: 'top',
+              WebkitFontSmoothing: 'antialiased',
+              textAlign: 'left'
             }}>
-              {value || 'Tap to select'}
-            </div>
-          </>
+            {value || (selected && !isEditing ? 'Tap to select' : 'Text Field')}
+          </div>
         );
       }
     } else if (type === 'date') {
@@ -151,6 +207,7 @@ const DraggableField = ({
         return (
           <input
             type="date"
+            value={editValue}
             onChange={handleDateChange}
             onBlur={handleTextBlur}
             onTouchStart={(e) => e.stopPropagation()}
@@ -162,7 +219,9 @@ const DraggableField = ({
               height: '100%',
               border: 'none',
               background: 'transparent',
-              fontSize: '11px',
+              fontFamily: attributes.fontFamily || 'Inter',
+              fontSize: `${(attributes.fontSize || 14) * scale}px`,
+              color: attributes.color || '#000',
               outline: 'none',
               pointerEvents: 'auto'
             }}
@@ -170,18 +229,20 @@ const DraggableField = ({
         );
       } else {
         return (
-          <>
-            <div style={{
-              pointerEvents: 'none', 
-              fontSize: '11px', 
-              fontWeight: 500,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap'
-            }}>
-              {value || 'DD/MM/YYYY'}
-            </div>
-          </>
+          <div style={{
+            pointerEvents: 'none',
+            fontFamily: attributes.fontFamily || 'Inter',
+            fontSize: `${(attributes.fontSize || 14) * scale}px`,
+            color: attributes.color || '#000',
+            fontWeight: attributes.bold ? 'bold' : 'normal',
+            fontStyle: attributes.italic ? 'italic' : 'normal',
+            textDecoration: attributes.underline ? 'underline' : 'none',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap'
+          }}>
+            {value || 'DD/MM/YYYY'}
+          </div>
         );
       }
     } else if (type === 'radio') {
@@ -199,7 +260,7 @@ const DraggableField = ({
             width: '80%',
             height: '80%',
             borderRadius: '50%',
-            border: '2px solid #333',
+            border: `${2 * scale}px solid #333`,
             background: isSelected ? '#2563eb' : 'transparent',
             display: 'flex',
             alignItems: 'center',
@@ -241,14 +302,16 @@ const DraggableField = ({
       }}
       onDoubleClick={handleDoubleClick}
       style={{
-        border: selected ? '2px solid #2563eb' : '1px dashed #64748b',
+        border: `${1 * scale}px dashed #64748b`,
+        outline: selected ? `${2 * scale}px solid #2563eb` : 'none',
+        outlineOffset: 0,
         backgroundColor: (type === 'signature' && value) || type === 'radio' || (type === 'image' && value) ? 'transparent' : 'rgba(255, 255, 255, 0.5)',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        alignItems: type === 'text' || type === 'date' ? 'flex-start' : 'center',
+        justifyContent: type === 'text' || type === 'date' ? 'flex-start' : 'center',
         cursor: isEditing ? 'text' : 'move',
         boxSizing: 'border-box',
-        padding: type === 'radio' ? '2px' : '4px'
+        padding: type === 'radio' ? `${2 * scale}px` : `${4 * scale}px`
       }}
     >
       {renderContent()}

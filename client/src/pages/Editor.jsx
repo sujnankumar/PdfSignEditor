@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import PDFViewer from '../components/PDFViewer';
 import DraggableField from '../components/DraggableField';
@@ -45,6 +45,7 @@ function Editor() {
   const [fields, setFields] = useState([]); 
   const [selectedField, setSelectedField] = useState(null);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
+  const [pendingSignatureAttributes, setPendingSignatureAttributes] = useState({});
   const [signatureImage, setSignatureImage] = useState(null);
   const [scaleMode, setScaleMode] = useState('auto');
   const [scaleValue, setScaleValue] = useState(1.0);
@@ -62,6 +63,8 @@ function Editor() {
   const [contextMenuPos, setContextMenuPos] = useState(null);
   const [touchStartTime, setTouchStartTime] = useState(0);
   const [isLongPressing, setIsLongPressing] = useState(false);
+  const rafRef = useRef(null);
+  const pendingPosRef = useRef(null);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     console.log(`Document loaded with ${numPages} pages`);
@@ -80,6 +83,14 @@ function Editor() {
 
   const handleZoomControlTouchStart = (e) => {
     const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    
+    // Store initial positions
+    const initialTouchX = touch.clientX;
+    const initialTouchY = touch.clientY;
+    const initialRectLeft = rect.left;
+    const initialRectTop = rect.top;
+    
     setTouchStartTime(Date.now());
     setIsLongPressing(false);
     
@@ -88,16 +99,12 @@ function Editor() {
       // Long press detected - start drag mode
       setIsLongPressing(true);
       setIsDragging(true);
-      const rect = e.currentTarget.getBoundingClientRect();
-      setDragOffset({
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-      });
       
-      // Prevent scrolling
-      if (e.cancelable) {
-        e.preventDefault();
-      }
+      // Calculate offset using stored initial positions
+      setDragOffset({
+        x: initialTouchX - initialRectLeft,
+        y: initialTouchY - initialRectTop
+      });
     }, 500); // 500ms long press threshold
     
     // Store timer ID to clear it if touch ends early
@@ -125,10 +132,9 @@ function Editor() {
   const handleZoomControlTouchMove = (e) => {
     if (!isDragging || !isLongPressing) return;
     
-    // Prevent background scrolling
-    if (e.cancelable) {
-      e.preventDefault();
-    }
+    // Always prevent background scrolling during drag
+    e.preventDefault();
+    e.stopPropagation();
     
     const touch = e.touches[0];
     let newX = touch.clientX - dragOffset.x;
@@ -143,7 +149,19 @@ function Editor() {
     newX = Math.max(padding, Math.min(newX, maxX));
     newY = Math.max(padding, Math.min(newY, maxY));
     
-    setZoomControlPos({ x: newX, y: newY });
+    // Store pending position
+    pendingPosRef.current = { x: newX, y: newY };
+    
+    // Use requestAnimationFrame for smooth 60fps updates
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(() => {
+        if (pendingPosRef.current) {
+          setZoomControlPos(pendingPosRef.current);
+          pendingPosRef.current = null;
+        }
+        rafRef.current = null;
+      });
+    }
   };
 
   const handleZoomControlMouseUp = () => {
@@ -154,6 +172,12 @@ function Editor() {
     // Clear long press timer if it exists
     if (e.currentTarget.longPressTimer) {
       clearTimeout(e.currentTarget.longPressTimer);
+    }
+    
+    // Cancel any pending animation frame
+    if (rafRef.current) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
     
     const touchDuration = Date.now() - touchStartTime;
@@ -221,6 +245,7 @@ function Editor() {
 
   const addField = (type, attributes = {}) => {
       if (type === 'signature' && !signatureImage) {
+          setPendingSignatureAttributes(attributes);
           setShowSignaturePad(true);
           return;
       }
@@ -316,10 +341,12 @@ function Editor() {
         type: 'signature',
         pageNumber: currentPage, // Use current page
         value: dataUrl,
-        rect: { x: 0.35, y: 0.4, w: 0.3, h: 0.1 } 
+        rect: { x: 0.35, y: 0.4, w: 0.3, h: 0.1 },
+        attributes: pendingSignatureAttributes, // Use pending attributes
     };
     setFields([...fields, newField]);
     setSignatureImage(null);
+    setPendingSignatureAttributes({}); // Clear pending attributes
   };
 
   const savePdf = async () => {
@@ -331,17 +358,18 @@ function Editor() {
 
     try {
         // Send ALL fields to backend for burn-in
-        const response = await fetch('http://localhost:5000/sign-pdf', {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/sign-pdf`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 pdfId: pdfData ? 'uploaded' : 'sample',
                 pdfData: pdfData,
-                fields: fields.map(f => ({ // Send all fields
+                fields: fields.map(f => ({ // Send all fields with attributes
                     type: f.type,
                     value: f.value,
                     rect: f.rect,
-                    pageNumber: f.pageNumber
+                    pageNumber: f.pageNumber,
+                    attributes: f.attributes || {}
                 }))
             })
         });
@@ -604,7 +632,9 @@ function Editor() {
                  initialPos={field.rect} 
                  pageNumber={field.pageNumber}
                  pdfDimensions={pdfDimensions}
-                 onUpdate={(id, newRect) => updateField(id, newRect)} 
+                 scale={effectiveScale}
+                 attributes={field.attributes || {}}
+                 onUpdate={updateField} 
                  onValueChange={updateFieldValue}
                  onRemove={removeField}
                  selected={selectedField === field.id}
@@ -618,6 +648,7 @@ function Editor() {
           <SignaturePad 
             onSave={handleSaveSignature}
             onCancel={() => setShowSignaturePad(false)}
+            attributes={pendingSignatureAttributes}
           />
       )}
       

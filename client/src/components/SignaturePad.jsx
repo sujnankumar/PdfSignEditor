@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 
-const SignaturePad = ({ onSave, onCancel }) => {
+const SignaturePad = ({ onSave, onCancel, attributes = {} }) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -13,10 +13,18 @@ const SignaturePad = ({ onSave, onCancel }) => {
     canvas.height = canvas.offsetHeight;
     
     const ctx = canvas.getContext('2d');
-    ctx.lineWidth = 2;
+    
+    // Apply pen attributes from Insert menu
+    const penThicknessMap = {
+      thin: 1.5,
+      medium: 2.5,
+      thick: 4
+    };
+    
+    ctx.lineWidth = penThicknessMap[attributes.penThickness] || 2.5;
     ctx.lineCap = 'round';
-    ctx.strokeStyle = '#000000';
-  }, []);
+    ctx.strokeStyle = attributes.penColor || '#000000';
+  }, [attributes.penColor, attributes.penThickness]);
 
   const startDrawing = ({ nativeEvent }) => {
     const { offsetX, offsetY } = nativeEvent;
@@ -53,6 +61,7 @@ const SignaturePad = ({ onSave, onCancel }) => {
 
   const handleTouchStart = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     const pos = getTouchPos(e);
     const ctx = canvasRef.current.getContext('2d');
     ctx.beginPath();
@@ -63,6 +72,7 @@ const SignaturePad = ({ onSave, onCancel }) => {
   const handleTouchMove = (e) => {
     if (!isDrawing) return;
     e.preventDefault();
+    e.stopPropagation();
     const pos = getTouchPos(e);
     const ctx = canvasRef.current.getContext('2d');
     ctx.lineTo(pos.x, pos.y);
@@ -71,6 +81,7 @@ const SignaturePad = ({ onSave, onCancel }) => {
 
   const handleTouchEnd = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     const ctx = canvasRef.current.getContext('2d');
     ctx.closePath();
     setIsDrawing(false);
@@ -89,7 +100,11 @@ const SignaturePad = ({ onSave, onCancel }) => {
   };
 
   return (
-    <div className="signature-pad-modal" style={{
+    <div 
+      className="signature-pad-modal" 
+      onClick={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.preventDefault()}
+      style={{
         position: 'fixed', 
         top: 0, 
         left: 0, 
@@ -101,7 +116,8 @@ const SignaturePad = ({ onSave, onCancel }) => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center',
-        padding: '20px'
+        padding: '20px',
+        touchAction: 'none'
     }}>
       <div className="signature-pad-container" style={{
           background: 'linear-gradient(to bottom, #1a1a1a, #111)',
@@ -155,7 +171,8 @@ const SignaturePad = ({ onSave, onCancel }) => {
                 width: '100%', 
                 height: '100%', 
                 cursor: 'crosshair',
-                display: 'block'
+                display: 'block',
+                touchAction: 'none'
               }}
               onMouseDown={startDrawing}
               onMouseMove={draw}

@@ -22,7 +22,57 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
     }
 
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // Embed fonts for attribute support
+    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const helveticaObliqueFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
+    const helveticaBoldObliqueFont = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique);
+    const courierFont = await pdfDoc.embedFont(StandardFonts.Courier);
+    const courierBoldFont = await pdfDoc.embedFont(StandardFonts.CourierBold);
+    const timesRomanFont = await pdfDoc.embedFont(StandardFonts.TimesRoman);
+    const timesRomanBoldFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBold);
+    const timesRomanItalicFont = await pdfDoc.embedFont(StandardFonts.TimesRomanItalic);
+    const timesRomanBoldItalicFont = await pdfDoc.embedFont(StandardFonts.TimesRomanBoldItalic);
+
+    // Helper function to get font based on attributes
+    const getFont = (attributes = {}) => {
+        const fontFamily = attributes.fontFamily || 'Inter';
+        const bold = attributes.bold;
+        const italic = attributes.italic;
+
+        // Map font families to available PDF fonts
+        if (fontFamily === 'Courier') {
+            return bold ? courierBoldFont : courierFont;
+        } else if (fontFamily === 'Roboto' || fontFamily === 'Arial') {
+            // Use Times Roman as fallback for Roboto/Arial
+            if (bold && italic) return timesRomanBoldItalicFont;
+            if (bold) return timesRomanBoldFont;
+            if (italic) return timesRomanItalicFont;
+            return timesRomanFont;
+        } else {
+            // Default: Inter/Helvetica
+            if (bold && italic) return helveticaBoldObliqueFont;
+            if (bold) return helveticaBoldFont;
+            if (italic) return helveticaObliqueFont;
+            return helveticaFont;
+        }
+    };
+
+    // Helper function to convert hex color to RGB
+    const hexToRgb = (hex) => {
+        if (!hex || hex === '#000' || hex === '#000000') return rgb(0, 0, 0);
+
+        // Remove # if present
+        hex = hex.replace('#', '');
+
+        // Parse hex values
+        const r = parseInt(hex.substring(0, 2), 16) / 255;
+        const g = parseInt(hex.substring(2, 4), 16) / 255;
+        const b = parseInt(hex.substring(4, 6), 16) / 255;
+
+        return rgb(r, g, b);
+    };
 
     // Process each field
     for (const field of fields) {
@@ -34,7 +84,7 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
         const boxW = field.rect.w * pageWidth;
         const boxH = field.rect.h * pageHeight;
         const x = field.rect.x * pageWidth;
-        // Y-axis flip: PDF is bottom-left origin
+        // Y-axis flip: PDF is bottom-left origin, CSS is top-left
         const y = pageHeight - (field.rect.y * pageHeight) - boxH;
 
         switch (field.type) {
@@ -58,6 +108,7 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                         drawW = boxH * imgAspect;
                     }
 
+                    // Center signature in box (like editor does)
                     const drawX = x + (boxW - drawW) / 2;
                     const drawY = y + (boxH - drawH) / 2;
 
@@ -93,12 +144,13 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                     let drawW, drawH;
                     if (imgAspect > boxAspect) {
                         drawW = boxW;
-                        drawH = boxW / imgAspect;
+                        drawH = drawW / imgAspect;
                     } else {
                         drawH = boxH;
                         drawW = boxH * imgAspect;
                     }
 
+                    // Center image in box
                     const drawX = x + (boxW - drawW) / 2;
                     const drawY = y + (boxH - drawH) / 2;
 
@@ -112,30 +164,49 @@ exports.signPdf = async (pdfId, pdfData, fields, pageNumber = 1) => {
                 break;
 
             case 'text':
-                // Text field handling
+                // Text field handling with attributes  
                 if (field.value && field.value !== 'Text Field') {
-                    const fontSize = Math.min(boxH * 0.6, 12); // Adaptive font size
+                    const attributes = field.attributes || {};
+                    const fontSize = attributes.fontSize || 14;
+                    const font = getFont(attributes);
+                    const color = hexToRgb(attributes.color);
+
+                    const padding = 4;
+                    // Text is top-left aligned in editor
+                    // PDF Y is bottom-up, so we need to position from top of box
+                    const textX = x + padding;
+                    const textY = (y + boxH) - padding - fontSize; // Top of box minus padding minus font height
+
                     targetPage.drawText(field.value, {
-                        x: x + 4,
-                        y: y + (boxH - fontSize) / 2,
+                        x: textX,
+                        y: textY,
                         size: fontSize,
                         font: font,
-                        color: rgb(0, 0, 0),
-                        maxWidth: boxW - 8
+                        color: color,
+                        maxWidth: boxW - (padding * 2),
+                        lineHeight: fontSize * 1.2
                     });
                 }
                 break;
 
             case 'date':
-                // Date field handling
+                // Date field handling with attributes
                 if (field.value) {
-                    const fontSize = Math.min(boxH * 0.6, 11);
+                    const attributes = field.attributes || {};
+                    const fontSize = attributes.fontSize || 14;
+                    const font = getFont(attributes);
+                    const color = hexToRgb(attributes.color);
+
+                    const padding = 4;
+                    const textX = x + padding;
+                    const textY = (y + boxH) - padding - fontSize;
+
                     targetPage.drawText(field.value, {
-                        x: x + 4,
-                        y: y + (boxH - fontSize) / 2,
+                        x: textX,
+                        y: textY,
                         size: fontSize,
                         font: font,
-                        color: rgb(0, 0, 0),
+                        color: color,
                     });
                 }
                 break;

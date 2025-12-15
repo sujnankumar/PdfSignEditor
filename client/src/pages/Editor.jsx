@@ -59,6 +59,7 @@ function Editor() {
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [showInsertMenu, setShowInsertMenu] = useState(false);
+  const [contextMenuPos, setContextMenuPos] = useState(null);
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     console.log(`Document loaded with ${numPages} pages`);
@@ -335,6 +336,19 @@ function Editor() {
       setFields([...fields, newField]);
   };
 
+  // Handle right-click to show insert menu
+  const handleContextMenu = (e) => {
+    e.preventDefault();
+    setContextMenuPos({ x: e.clientX, y: e.clientY });
+    setShowInsertMenu(true);
+  };
+
+  // Close context menu when clicking elsewhere
+  const handleCloseContextMenu = () => {
+    setShowInsertMenu(false);
+    setContextMenuPos(null);
+  };
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -352,17 +366,24 @@ function Editor() {
              <div className="insert-button-wrapper">
                  <button 
                      className="insert-btn" 
-                     onClick={() => setShowInsertMenu(!showInsertMenu)}
+                     onClick={() => {
+                       setContextMenuPos(null);
+                       setShowInsertMenu(!showInsertMenu);
+                     }}
                      title="Insert Field"
                  >
                      <Plus size={18} style={{marginRight: 6}}/> Insert
                  </button>
                  {showInsertMenu && (
                      <InsertMenu 
-                         onInsertField={addField}
-                         onClose={() => setShowInsertMenu(false)}
+                         onInsertField={(type, attrs) => {
+                           addField(type, attrs);
+                           handleCloseContextMenu();
+                         }}
+                         onClose={handleCloseContextMenu}
                          isMobile={false}
                          currentPage={currentPage}
+                         contextMenuPos={contextMenuPos}
                      />
                  )}
              </div>
@@ -484,7 +505,7 @@ function Editor() {
       )}
       
       
-      <main className="pdf-workspace" ref={workspaceRef}>
+      <main className="pdf-workspace" ref={workspaceRef} onContextMenu={handleContextMenu}>
         <div className="pdf-wrapper" style={{ position: 'relative' }}>
            <PDFViewer 
               file={pdfFile}

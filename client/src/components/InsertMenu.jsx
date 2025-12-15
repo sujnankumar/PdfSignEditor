@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FileText, PenTool, Image as ImageIcon, Circle, Calendar, X, ChevronRight } from 'lucide-react';
 import './InsertMenu.css';
 
-const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage }) => {
+const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage, contextMenuPos = null }) => {
     const [activeField, setActiveField] = useState(null);
     const [fieldAttributes, setFieldAttributes] = useState({
         text: {
@@ -331,7 +331,16 @@ const InsertMenu = ({ onInsertField, onClose, isMobile = false, currentPage }) =
     }
 
     return (
-        <div className="insert-menu-dropdown" ref={menuRef}>
+        <div 
+            className="insert-menu-dropdown" 
+            ref={menuRef}
+            style={contextMenuPos ? {
+                position: 'fixed',
+                top: `${contextMenuPos.y}px`,
+                left: `${contextMenuPos.x}px`,
+                zIndex: 9999
+            } : {}}
+        >
             <div className="insert-menu-header">
                 <h3>Insert Field</h3>
             </div>

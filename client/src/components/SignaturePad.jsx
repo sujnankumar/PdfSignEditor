@@ -40,6 +40,42 @@ const SignaturePad = ({ onSave, onCancel }) => {
     setIsDrawing(false);
   };
 
+  // Touch event handlers for mobile support
+  const getTouchPos = (touchEvent) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const touch = touchEvent.touches[0];
+    return {
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    };
+  };
+
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    const pos = getTouchPos(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setIsDrawing(true);
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const pos = getTouchPos(e);
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const handleTouchEnd = (e) => {
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext('2d');
+    ctx.closePath();
+    setIsDrawing(false);
+  };
+
   const clear = () => {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
@@ -71,6 +107,9 @@ const SignaturePad = ({ onSave, onCancel }) => {
                 onMouseMove={draw}
                 onMouseUp={stopDrawing}
                 onMouseLeave={stopDrawing}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
              />
         </div>
         <div style={{display: 'flex', justifyContent: 'flex-end', gap: '10px'}}>

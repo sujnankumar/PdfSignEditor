@@ -15,6 +15,7 @@ const DraggableField = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(value || '');
+  const [lastTapTime, setLastTapTime] = useState(0);
 
   if (!pdfDimensions) return null;
 
@@ -49,7 +50,6 @@ const DraggableField = ({
     if (type === 'text' || type === 'date') {
       setIsEditing(true);
     } else if (type === 'radio') {
-      // Toggle radio selection
       const newValue = value === 'true' ? 'false' : 'true';
       if (onValueChange) {
         onValueChange(id, newValue);
@@ -57,11 +57,13 @@ const DraggableField = ({
     }
   };
 
-  // Mobile-friendly: also allow single tap when selected
-  const handleClick = () => {
-    if (selected && (type === 'text' || type === 'date')) {
-      setTimeout(() => setIsEditing(true), 100);
-    }
+  // Simple mobile touch handler for the overlay
+  const handleMobileTap = (e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    
+    // Just select the field on tap
+    onSelect(id);
   };
 
   const handleTextBlur = () => {
@@ -112,6 +114,9 @@ const DraggableField = ({
             value={editValue}
             onChange={(e) => setEditValue(e.target.value)}
             onBlur={handleTextBlur}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
             autoFocus
             style={{
               width: '100%',
@@ -120,22 +125,25 @@ const DraggableField = ({
               background: 'transparent',
               textAlign: 'center',
               fontSize: '12px',
-              outline: 'none'
+              outline: 'none',
+              pointerEvents: 'auto'
             }}
           />
         );
       } else {
         return (
-          <div style={{
-            pointerEvents: 'none', 
-            fontSize: '12px', 
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}>
-            {value || 'Double-click to edit'}
-          </div>
+          <>
+            <div style={{
+              pointerEvents: 'none', 
+              fontSize: '12px', 
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {value || 'Tap to select'}
+            </div>
+          </>
         );
       }
     } else if (type === 'date') {
@@ -145,6 +153,9 @@ const DraggableField = ({
             type="date"
             onChange={handleDateChange}
             onBlur={handleTextBlur}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => e.stopPropagation()}
             autoFocus
             style={{
               width: '100%',
@@ -152,22 +163,25 @@ const DraggableField = ({
               border: 'none',
               background: 'transparent',
               fontSize: '11px',
-              outline: 'none'
+              outline: 'none',
+              pointerEvents: 'auto'
             }}
           />
         );
       } else {
         return (
-          <div style={{
-            pointerEvents: 'none', 
-            fontSize: '11px', 
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap'
-          }}>
-            {value || 'DD/MM/YYYY'}
-          </div>
+          <>
+            <div style={{
+              pointerEvents: 'none', 
+              fontSize: '11px', 
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}>
+              {value || 'DD/MM/YYYY'}
+            </div>
+          </>
         );
       }
     } else if (type === 'radio') {
@@ -218,11 +232,12 @@ const DraggableField = ({
       onDragStop={handleDragStop}
       onResizeStop={handleResizeStop}
       bounds="parent"
+      disableDragging={isEditing}
+      enableResizing={!isEditing}
       className={`draggable-field ${selected ? 'selected' : ''}`}
       onClick={(e) => {
           e.stopPropagation();
           onSelect(id);
-          handleClick();
       }}
       onDoubleClick={handleDoubleClick}
       style={{
@@ -231,13 +246,68 @@ const DraggableField = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        cursor: 'move',
+        cursor: isEditing ? 'text' : 'move',
         boxSizing: 'border-box',
         padding: type === 'radio' ? '2px' : '4px'
       }}
     >
       {renderContent()}
-      {selected && (
+      
+      {/* Mobile Touch Overlay - captures touches before react-rnd */}
+      {!isEditing && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10,
+            cursor: 'pointer',
+            background: 'transparent'
+          }}
+          onTouchEnd={handleMobileTap}
+        />
+      )}
+      
+      {/* Edit Button - visible when selected for text/date fields */}
+      {selected && !isEditing && (type === 'text' || type === 'date') && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsEditing(true);
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setIsEditing(true);
+          }}
+          style={{
+            position: 'absolute',
+            bottom: -10,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#2a3f5f',
+            color: '#fff',
+            border: '1px solid #3b5998',
+            borderRadius: '6px',
+            padding: '3px 8px',
+            fontSize: '10px',
+            fontWeight: '500',
+            cursor: 'pointer',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+            zIndex: 1000,
+            pointerEvents: 'auto',
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s'
+          }}
+        >
+          Edit
+        </button>
+      )}
+      
+      {/* Delete Button */}
+      {selected && !isEditing && (
           <button 
             onClick={(e) => { 
                 e.stopPropagation();
@@ -245,25 +315,32 @@ const DraggableField = ({
                 onRemove(id); 
             }}
             onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onTouchEnd={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onRemove(id);
+            }}
             style={{
                 position: 'absolute',
-                top: -10,
-                right: -10,
-                background: '#ef4444',
+                top: -8,
+                right: -8,
+                background: 'rgba(239, 68, 68, 0.9)',
                 color: 'white',
-                border: 'none',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
                 borderRadius: '50%',
-                width: 24,
-                height: 24,
+                width: 20,
+                height: 20,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: '16px',
+                fontSize: '14px',
                 fontWeight: 'bold',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.4)',
                 pointerEvents: 'auto',
-                zIndex: 100
+                zIndex: 1000,
+                transition: 'all 0.2s'
             }}
           >
               ×
